@@ -1,5 +1,12 @@
 package app;
 
+/*
+ * Filename: Ingredient.java
+ * Authors: Team Delta - Dustin Cook, Zachary Pesons, David Solan, Nathan Wray
+ * Purpose: Ingredient objects represent an ingredient in a MenuItem with quantity and measurement
+ * Date: April 19, 2021
+ */
+
 public class Ingredient {
     private String name;
     private String quantity;

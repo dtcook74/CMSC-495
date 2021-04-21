@@ -6,8 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class CsvReader {
+/*
+ * Filename: CsvReader.java
+ * Authors: Team Delta - Dustin Cook, Zachary Pesons, David Solan, Nathan Wray
+ * Purpose: CsvReader contains methods to read different CSV files into objects
+ * Date: April 19, 2021
+ */
 
+public class CsvReader {
     public List<MenuItem> getMenuItems(String filename) throws FileNotFoundException {
         List<MenuItem> menuItems = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filename))) {

@@ -3,6 +3,13 @@ package app;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Filename: MenuItem.java
+ * Authors: Team Delta - Dustin Cook, Zachary Pesons, David Solan, Nathan Wray
+ * Purpose: MenuItem objects represent a specific item on the menu
+ * Date: April 19, 2021
+ */
+
 public class MenuItem {
     private String name;
     private List<Ingredient> ingredients;
