@@ -7,5 +7,4 @@ RUN PROGRAM:
 -run command: ./app-run
 
 EXPECTED RESULTS:
-A dialog box should pop up stating "PROGRAM SUCCESS: CHECK CONSOLE FOR MENU ITEMS". Console should contain all items
-from MenuItemsSample.csv
+A dialog box should pop up. This is a framework for the final product. Click "X" to close the program
