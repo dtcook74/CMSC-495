@@ -31,7 +31,7 @@ public class Inventory {
 
     // Returns the amount of the ingredient currently in
     // the inventory
-    public int getIngredient(String name) {
+    public int getIngredient(Ingredient name) {
         return ingredients.get(name);
     }
 

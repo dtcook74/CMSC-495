@@ -1,0 +1,21 @@
+**Actual file name would be Sales April 5-11 2021***
+
+DiamondBack Tavern Sales 
+
+April 5 - April 11, 2021
+
+FrenchOnion, 20
+DeanList, 34
+BlackAndBlue, 23
+MacAndCheese, 42
+CrabDip, 23
+ChorizoMelt, 15
+FishTacos, 22
+
+Total items = 179
+
+*****Aloha POS Systems*****
+*			  *
+*			  *
+*			  *
+***************************

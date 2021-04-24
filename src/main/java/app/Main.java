@@ -16,7 +16,6 @@ Authors: Team Delta: Zachary Pesons, Nathan Wray, Dustin Cook, David Solan
 Purpose: contains the main method and the GUI logic.
 Date: March 18, 2021
  */
-
 public class Main extends JFrame {
 
     // Variables declaration
@@ -41,15 +40,24 @@ public class Main extends JFrame {
     // End of variables declaration
 
     public Main() {
+        //Inventory has to load before Menu
+        try {
+            initInventory();
+            initMenu();
+        } catch (MenuNotFoundException | InventoryNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        exportOrderBtn.setEnabled(false);
+        predictOrderBtn.setEnabled(false);
         initComponents();
     }
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="GUI">
-    private void initComponents() {
 
-        //create inventory
-        inventory = new Inventory();
+    private void initComponents() {
+// <editor-fold defaultstate="collapsed" desc="GUI and builder method">
+
+        this.setTitle("Magic Pro-Order V9000");
 
         //initialize table data to length of inventory and 4 columns
         inventoryTableInput = new String[inventory.getInventoryMap().size()][4];
@@ -70,21 +78,20 @@ DELETE ABOVE
 
         tableData = inventoryTableInput.clone();
 
-        
         model = new DefaultTableModel(tableData,
                 new String[]{
                     "Item", "Inventory", "Needed", "To Order"
                 }) {
             boolean[] canEdit = new boolean[]{false, true, false, false};
+
+            @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
             }
         };
-        
+
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        loadInventory();
-        
         //Action listeners for buttons
         addMenuItemBtn.setText("Add Menu Item");
         addMenuItemBtn.addActionListener(e -> {
@@ -163,11 +170,6 @@ DELETE ABOVE
         pack();
     }//end of initComponents // </editor-fold>
 
-    private void loadInventory(){
-        //find inventory file and create inventory object based on ingredient and amount
-        //for each line, new ingredient is instantiated and added to inventory map        
-    }
-    
     private void addMenuItemBtnActionPerformed() {
         chooser = new JFileChooser(".");
         chooser.setDialogTitle("Select Menu Item");
@@ -179,24 +181,32 @@ DELETE ABOVE
     }//end addMenuBtn
 
     private void predictOrderBtnActionPerformed(ActionEvent evt) {
+        //button should be hidden if averageSales is null or no sales are loaded
         //populates fourth column of table with either zero for dont order
         //OR number of items to order
-        
+
+        exportOrderBtn.setEnabled(true);
     }//end predictOrder
 
     private void editInventoryBtnActionPerformed(ActionEvent evt) {
         //pop up window that edits the Inventory map by it's getter/setter
         //alternately this could be done in the table - not yet implemented
-        
+
     }//end editInventory
 
     private void loadSalesBtnActionPerformed() {
+        //load selected file
+        //add sales in second dimension 
+        //in averageSales[menuItem][sales]
+        //first stage can be 1 month of sales so 4 files then divide by 4 for average
+
         chooser = new JFileChooser(".");
         chooser.setDialogTitle("Select Sales File");
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             File input = chooser.getSelectedFile();
-            //parse menu item file to create new menu item
+
         }
+        predictOrderBtn.setEnabled(true);
     }//end loadSales
 
     private void exportOrderBtnActionPerformed(ActionEvent evt) {
@@ -205,6 +215,35 @@ DELETE ABOVE
         //pop up stating that there is no order predicted and to continue anyway
 
     }//end exportOrder
+
+    private void initInventory() throws InventoryNotFoundException {
+        inventory = new Inventory();
+        //scan inventory file, create ingredient objects based on file lines
+        //add created ingredient and quantity to Inventory.ingredients hashmap
+
+    }//end initInventory
+
+    private void initMenu() throws MenuNotFoundException {
+        //scan menu file, create MenuItem object based on name and list
+        //of Ingredient objects
+        menu = new ArrayList();
+
+        //If ingredient is not found, create it and add zero to inventory
+        //sort of like this
+        inventory.getInventoryMap().putIfAbsent(new Ingredient("name", 0), 0);
+        //or like this
+        int i = 0;
+        Ingredient temp = new Ingredient("name", 0);
+        for (Ingredient name : inventory.getInventoryMap().keySet()) {
+            //or name.getName.equals(temp.getName) if compareTo doesnt work
+            if (name.compareTo(temp) == 0) {
+                i++;
+            }
+        }
+        if (i > 0) {
+        }//ingredient already exists
+
+    }//end initMenu
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
