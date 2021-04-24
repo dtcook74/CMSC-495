@@ -13,9 +13,15 @@ import java.util.List;
 public class MenuItem {
     private String name;
     private List<Ingredient> ingredients;
-
+    
     public MenuItem() {
         ingredients = new ArrayList<>();
+        name = "";
+    }//default
+    
+    public MenuItem(List<Ingredient> ingredients, String name) {
+        this.ingredients = ingredients;
+        this.name = name;
     }
 
     public String getName() {

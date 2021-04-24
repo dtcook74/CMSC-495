@@ -11,6 +11,14 @@ public class Ingredient {
     private String name;
     private String quantity;
     private String measurementUnit;
+    
+    public Ingredient(){
+    }
+    
+    public Ingredient(String name, int quantity){
+        this.name = name;
+        this.quantity = Integer.toString(quantity);
+    }
 
     public String getName() {
         return name;
