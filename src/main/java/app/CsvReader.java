@@ -14,7 +14,7 @@ import java.util.Scanner;
  */
 
 public class CsvReader {
-    public List<MenuItem> getMenuItems(String filename) throws FileNotFoundException {
+    public List<MenuItem> getMenuItems(String filename) throws FileNotFoundException, InvalidCsvFormatException {
         List<MenuItem> menuItems = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filename))) {
             MenuItem menuItem = null;
@@ -38,12 +38,59 @@ public class CsvReader {
                     ingredient.setMeasurementUnit(line[2]);
                     menuItem.getIngredients().add(ingredient);
                 } else {
-                    //TODO throw formatting exception
-                    break;
+                    throw new InvalidCsvFormatException("Csv file is incorrectly formatted. See User Guide for proper format");
                 }
             }
             if (menuItem != null) menuItems.add(menuItem);
             return menuItems;
         }
+    }
+
+    public Inventory getInventory(String filename) throws FileNotFoundException, InvalidCsvFormatException {
+        Inventory inventory = new Inventory();
+        try(Scanner scanner = new Scanner(new File(filename))) {
+            while (scanner.hasNextLine()) {
+                String[] line = scanner.nextLine().split(",");
+                if (line.length == 0) {
+                    //empty line...skip
+                    continue;
+                } else if (line.length == 3) {
+                    try {
+                        inventory.addIngredient(line[0], Integer.parseInt(line[1].trim()));
+                    } catch (NumberFormatException e) {
+                        throw new InvalidCsvFormatException("Ingredient amount must be provided as an integer");
+                    }
+                } else {
+                    throw new InvalidCsvFormatException("Format of each line must be name,amount,measurement");
+                }
+            }
+        }
+        return inventory;
+    }
+
+    public Sales getSales(String filename) throws FileNotFoundException, InvalidCsvFormatException {
+        Sales sales = new Sales();
+        try(Scanner scanner = new Scanner(new File(filename))) {
+            while (scanner.hasNextLine()) {
+                String[] line = scanner.nextLine().split(",");
+                if (line.length == 0 || line[0].startsWith("*") || (!line[0].contains("=") && line[0].contains(" "))) {
+                    //ignore
+                    continue;
+                } else if (line.length == 1 && line[0].contains("=")) {
+                    try {
+                        sales.setTotalSales(Integer.parseInt(line[0].split("=")[1].trim()));
+                    } catch (NumberFormatException e) {
+                        throw new InvalidCsvFormatException("Total sales must be show in the format Total Items = {integer}");
+                    }
+                } else if (line.length == 2) {
+                    try {
+                        sales.addSaleItem(line[0], Integer.parseInt(line[1].trim()));
+                    } catch (NumberFormatException e) {
+                        throw new InvalidCsvFormatException("Sales numbers must be formatted as an integer");
+                    }
+                }
+            }
+        }
+        return sales;
     }
 }
