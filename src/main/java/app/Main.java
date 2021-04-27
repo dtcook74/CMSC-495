@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 /*
@@ -37,6 +39,7 @@ public class Main extends JFrame {
     private SaleItem[] sales;
     private HashMap<MenuItem, Integer> averageSales;
     private HashMap<Ingredient, Integer> ingredientSales;
+    private boolean updating = false;
     // End of variables declaration
 
     public Main() {
@@ -77,10 +80,9 @@ DELETE ABOVE
          */
 
         tableData = inventoryTableInput.clone();
-
         model = new DefaultTableModel(tableData,
                 new String[]{
-                    "Item", "Inventory", "Needed", "To Order"
+                        "Item", "Inventory", "Needed", "To Order"
                 }) {
             boolean[] canEdit = new boolean[]{false, true, false, false};
 
@@ -89,6 +91,33 @@ DELETE ABOVE
                 return canEdit[columnIndex];
             }
         };
+
+        // Listen for changes made on the inventory column
+        // and update to order column accordingly
+        model.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                // your code goes here, whatever you want to do when something changes in the table
+                if(updating == false)
+                {
+                    doUpdate(e);
+                }
+            }
+
+            // Prevents stack overflow error when inserting new
+            // table values. "Locks" table so tableChanged method cannot
+            // affect it while table is being updated
+            public void doUpdate(TableModelEvent e) {
+                updating = true; // Lock
+                int col = e.getColumn();
+                int row = e.getFirstRow();
+                String inv =  (String) model.getValueAt(row,col); // value in inventory column
+                String need = (String) model.getValueAt(row,col+1); // value in need column
+                int newVal = Integer.parseInt(need) - Integer.parseInt(inv);
+                String nv = Integer.toString(newVal);
+                model.setValueAt(nv, row, col+2); // set new to order value
+                updating = false; // Unlock
+            }
+        });
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -196,7 +225,7 @@ DELETE ABOVE
 
     private void loadSalesBtnActionPerformed() {
         //load selected file
-        //add sales in second dimension 
+        //add sales in second dimension
         //in averageSales[menuItem][sales]
         //first stage can be 1 month of sales so 4 files then divide by 4 for average
 
@@ -211,7 +240,7 @@ DELETE ABOVE
 
     private void exportOrderBtnActionPerformed(ActionEvent evt) {
         //take the tableData and print it in CSV or other readable format
-        //button should either be hidden until predict order is pressed OR 
+        //button should either be hidden until predict order is pressed OR
         //pop up stating that there is no order predicted and to continue anyway
 
     }//end exportOrder
