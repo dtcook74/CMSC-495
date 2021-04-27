@@ -13,16 +13,6 @@ public class Inventory {
 
     public Inventory() {}
 
-    // Constructor for Inventory class
-    // filename will be the name of the csv file to be read in
-	/*
-	   public Inventory(File filename) {
-		// Read in inventory file that contains
-		// current restaurant inventory info
-		// then populate or update Ingredients map
-	}
-	 */
-
     // amount parameter is int for now but we might
     // change this later to a double or float?
     public void addIngredient(String name, int amount) {
