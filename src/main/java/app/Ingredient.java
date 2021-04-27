@@ -6,11 +6,19 @@ package app;
  * Purpose: Ingredient objects represent an ingredient in a MenuItem with quantity and measurement
  * Date: April 19, 2021
  */
+public class Ingredient implements Comparable<Ingredient> {
 
-public class Ingredient {
     private String name;
     private String quantity;
     private String measurementUnit;
+
+    public Ingredient() {
+    }
+
+    public Ingredient(String name, int quantity) {
+        this.name = name;
+        this.quantity = Integer.toString(quantity);
+    }
 
     public String getName() {
         return name;
@@ -39,5 +47,14 @@ public class Ingredient {
     @Override
     public String toString() {
         return String.format("%s: %s %s", name, quantity, measurementUnit);
+    }
+
+    @Override
+    public int compareTo(Ingredient ingredient) {
+        if (name.equalsIgnoreCase(ingredient.name)) {
+            return 0;
+        } else {
+            return -1;
+        }
     }
 }

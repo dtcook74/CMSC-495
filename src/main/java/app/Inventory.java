@@ -9,7 +9,7 @@ import java.util.Map;
  * Date: April 19, 2021
  */
 public class Inventory {
-    private Map<String, Integer> ingredients = new HashMap<>();
+    private Map<Ingredient, Integer> ingredients = new HashMap<>();
 
     public Inventory() {}
 
@@ -26,12 +26,12 @@ public class Inventory {
     // amount parameter is int for now but we might
     // change this later to a double or float?
     public void addIngredient(String name, int amount) {
-        ingredients.put(name, amount);
+        ingredients.put(new Ingredient(name, amount), amount);
     }
 
     // Returns the amount of the ingredient currently in
     // the inventory
-    public int getIngredient(String name) {
+    public int getIngredient(Ingredient name) {
         return ingredients.get(name);
     }
 
@@ -49,15 +49,20 @@ public class Inventory {
         // in this form:
         // name: amount
         // name2: amount2
-        for(String name : ingredients.keySet()) {
-            output += name + ": " + ingredients.get(name) + "\n";
+        for(Ingredient name : ingredients.keySet()) {
+            output += name.getName() + ": " + ingredients.get(name) + "\n";
         }
         return output;
+    }
+    
+//Dave made a bad lazy method and he should feel bad
+    public Map<Ingredient,Integer> getInventoryMap(){
+        return ingredients;
     }
 
     // Remove ingredient name and value pair from
     // ingredients map. Return true if successful, false if not
-    public boolean removeIngredient(String name) {
+    public boolean removeIngredient(Ingredient name) {
         if(ingredients.containsKey(name))
         {
             ingredients.remove(name);
@@ -77,7 +82,7 @@ public class Inventory {
     // command used in addIngredients method
     // However, this method checks first if the ingredient exists
     // Returns true if operation was successful, false if not
-    public boolean setAmount(String name, int amount)
+    public boolean setAmount(Ingredient name, int amount)
     {
         if(ingredients.containsKey(name))
         {
