@@ -68,9 +68,9 @@ public class CsvReader {
         return inventory;
     }
 
-    public Sales getSales(String filename) throws FileNotFoundException, InvalidCsvFormatException {
+    public Sales getSales(File file) throws FileNotFoundException, InvalidCsvFormatException {
         Sales sales = new Sales();
-        try(Scanner scanner = new Scanner(new File(filename))) {
+        try(Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 String[] line = scanner.nextLine().split(",");
                 if (line.length == 0 || line[0].startsWith("*") || (!line[0].contains("=") && line[0].contains(" "))) {

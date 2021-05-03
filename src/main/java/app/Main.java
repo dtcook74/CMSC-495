@@ -4,9 +4,11 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.logging.Level;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -35,11 +37,13 @@ public class Main extends JFrame {
     private Object[][] tableData;
     //custom objects
     private Inventory inventory;
-    private ArrayList<MenuItem> menu;
+    private List<MenuItem> menu;
     private SaleItem[] sales;
-    private HashMap<MenuItem, Integer> averageSales;
+    private HashMap<String, Integer> averageSales = new HashMap<>();
     private HashMap<Ingredient, Integer> ingredientSales;
     private boolean updating = false;
+    private final CsvReader reader = new CsvReader();
+    private int numWeeks = 0;
     // End of variables declaration
 
     public Main() {
@@ -47,7 +51,8 @@ public class Main extends JFrame {
         try {
             initInventory();
             initMenu();
-        } catch (MenuNotFoundException | InventoryNotFoundException e) {
+        } catch (MenuNotFoundException | InventoryNotFoundException | FileNotFoundException
+                | InvalidCsvFormatException e) {
             System.out.println(e.getMessage());
         }
         exportOrderBtn.setEnabled(false);
@@ -59,30 +64,12 @@ public class Main extends JFrame {
 
     private void initComponents() {
 // <editor-fold defaultstate="collapsed" desc="GUI and builder method">
-
         this.setTitle("Magic Pro-Order V9000");
-
-        //initialize table data to length of inventory and 4 columns
-        inventoryTableInput = new String[inventory.getInventoryMap().size()][4];
-
-        /*
-DELETE BELOW
-         */
-        inventoryTableInput = new String[10][4];//test
-        for (int i = 0; i < inventoryTableInput.length; i++) {
-            inventoryTableInput[i][0] = "chicken";
-            inventoryTableInput[i][1] = Integer.toString(4);
-            inventoryTableInput[i][2] = Integer.toString(10);
-            inventoryTableInput[i][3] = Integer.toString(6);
-        }
-        /*
-DELETE ABOVE
-         */
 
         tableData = inventoryTableInput.clone();
         model = new DefaultTableModel(tableData,
                 new String[]{
-                        "Item", "Inventory", "Needed", "To Order"
+                    "Item", "Inventory", "Needed", "To Order"
                 }) {
             boolean[] canEdit = new boolean[]{false, true, false, false};
 
@@ -97,8 +84,7 @@ DELETE ABOVE
         model.addTableModelListener(new TableModelListener() {
             public void tableChanged(TableModelEvent e) {
                 // your code goes here, whatever you want to do when something changes in the table
-                if(updating == false)
-                {
+                if (updating == false) {
                     doUpdate(e);
                 }
             }
@@ -110,11 +96,11 @@ DELETE ABOVE
                 updating = true; // Lock
                 int col = e.getColumn();
                 int row = e.getFirstRow();
-                String inv =  (String) model.getValueAt(row,col); // value in inventory column
-                String need = (String) model.getValueAt(row,col+1); // value in need column
+                String inv = (String) model.getValueAt(row, col); // value in inventory column
+                String need = (String) model.getValueAt(row, col + 1); // value in need column
                 int newVal = Integer.parseInt(need) - Integer.parseInt(inv);
                 String nv = Integer.toString(newVal);
-                model.setValueAt(nv, row, col+2); // set new to order value
+                model.setValueAt(nv, row, col + 2); // set new to order value
                 updating = false; // Unlock
             }
         });
@@ -210,10 +196,22 @@ DELETE ABOVE
     }//end addMenuBtn
 
     private void predictOrderBtnActionPerformed(ActionEvent evt) {
-        //button should be hidden if averageSales is null or no sales are loaded
-        //populates fourth column of table with either zero for dont order
-        //OR number of items to order
+        //set average sales based on number of weeks added
+        for (HashMap.Entry element : averageSales.entrySet()) {
+            element.setValue((int) element.getValue() / numWeeks);
+        }
+        
+        //use the averageSales and menu to populate ingredientSales
+        //use that amount to populate inventoryTableInput[ingredient name][column 3]
+        
+        
 
+
+        tableData = inventoryTableInput.clone();
+        model.fireTableDataChanged();
+//        for (HashMap.Entry ele : averageSales.entrySet()) {
+//            System.out.println(ele.getKey() + " " + ele.getValue());
+//        }
         exportOrderBtn.setEnabled(true);
     }//end predictOrder
 
@@ -224,16 +222,25 @@ DELETE ABOVE
     }//end editInventory
 
     private void loadSalesBtnActionPerformed() {
-        //load selected file
-        //add sales in second dimension
-        //in averageSales[menuItem][sales]
-        //first stage can be 1 month of sales so 4 files then divide by 4 for average
-
         chooser = new JFileChooser(".");
         chooser.setDialogTitle("Select Sales File");
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            File input = chooser.getSelectedFile();
-
+            try {
+                File input = chooser.getSelectedFile();
+                Sales temp = reader.getSales(input);
+                numWeeks++;
+                for (SaleItem sale : temp.getSaleItems()) {
+                    if (averageSales.containsKey(sale.getName())) {
+                        System.out.println("entering " + sale.getName());
+                        averageSales.put(sale.getName(),
+                                sale.getSales() + averageSales.get(sale.getName()));
+                    } else {
+                        averageSales.put(sale.getName(), sale.getSales());
+                    }
+                }
+            } catch (FileNotFoundException | InvalidCsvFormatException e) {
+                System.out.println(e.getMessage());
+            }
         }
         predictOrderBtn.setEnabled(true);
     }//end loadSales
@@ -245,17 +252,31 @@ DELETE ABOVE
 
     }//end exportOrder
 
-    private void initInventory() throws InventoryNotFoundException {
+    private void initInventory() throws InventoryNotFoundException, FileNotFoundException, InvalidCsvFormatException {
         inventory = new Inventory();
-        //scan inventory file, create ingredient objects based on file lines
-        //add created ingredient and quantity to Inventory.ingredients hashmap
+        inventory = reader.getInventory("Inventory.csv");
+        inventoryTableInput = new String[inventory.getInventoryMap().size()][4];
+
+        int i = 0;
+        for (Map.Entry<Ingredient, Integer> set : inventory.getInventoryMap().entrySet()) {
+            inventoryTableInput[i][0] = set.getKey().getName();
+            inventoryTableInput[i][1] = String.valueOf(set.getValue());
+            i++;
+        }
 
     }//end initInventory
 
-    private void initMenu() throws MenuNotFoundException {
+    private void initMenu() throws MenuNotFoundException, FileNotFoundException, InvalidCsvFormatException {
         //scan menu file, create MenuItem object based on name and list
         //of Ingredient objects
-        menu = new ArrayList();
+        menu = reader.getMenuItems("menu.csv");
+
+        for (MenuItem men : menu) {
+            System.out.println(men.getName());
+            for (Ingredient ing : men.getIngredients()) {
+                System.out.println(ing.getName());
+            }
+        }
 
         //If ingredient is not found, create it and add zero to inventory
         //sort of like this

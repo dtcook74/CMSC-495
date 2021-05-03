@@ -9,7 +9,7 @@ import java.util.Map;
  * Date: April 19, 2021
  */
 public class Inventory {
-    private Map<Ingredient, Integer> ingredients = new HashMap<>();
+    private HashMap<Ingredient, Integer> ingredients = new HashMap<>();
 
     public Inventory() {}
 
@@ -46,7 +46,7 @@ public class Inventory {
     }
     
 //Dave made a bad lazy method and he should feel bad
-    public Map<Ingredient,Integer> getInventoryMap(){
+    public HashMap<Ingredient,Integer> getInventoryMap(){
         return ingredients;
     }
 
