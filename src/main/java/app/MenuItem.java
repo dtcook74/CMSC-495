@@ -36,6 +36,10 @@ public class MenuItem {
         return ingredients;
     }
 
+    public void setIngredient(List<Ingredient> ingredients) {
+    	this.ingredients = ingredients;
+    }
+    	
     @Override
     public String toString() {
         String str = "";
