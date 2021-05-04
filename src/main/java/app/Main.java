@@ -38,6 +38,7 @@ public class Main extends JFrame {
     //custom objects
     private Inventory inventory;
     private List<MenuItem> menu;
+    //private HashMap<MenuItem, List<Ingredient>> menu;
     private SaleItem[] sales;
     private HashMap<String, Integer> averageSales = new HashMap<>();
     private HashMap<Ingredient, Integer> ingredientSales;
@@ -86,6 +87,7 @@ public class Main extends JFrame {
                 // your code goes here, whatever you want to do when something changes in the table
                 if (updating == false) {
                     doUpdate(e);
+                    //doUpdate(e);
                 }
             }
 
@@ -203,10 +205,28 @@ public class Main extends JFrame {
         
         //use the averageSales and menu to populate ingredientSales
         //use that amount to populate inventoryTableInput[ingredient name][column 3]
-        
-        
-
-
+        OrderManager om = new OrderManager();
+        om.setAverageSales(averageSales);
+        for(MenuItem m : menu)
+        {
+        	if(m == null || m.getName().equals("") || m.getIngredients()==null)
+        	{
+        		// do not add
+        	}
+        	else
+        	{
+        		om.addMenuItem(m.getName(), m.getIngredients());
+        	}
+        }
+        om.calcIngredientNeeds();
+        om.predictOrder(inventory.getInventoryMap());
+        HashMap<String, Integer> glist = om.getGroceryList();
+        System.out.println("\nTo Order");
+        for(String h : glist.keySet())
+        {
+        	System.out.println(h + " " + glist.get(h));
+        }
+   		
         tableData = inventoryTableInput.clone();
         model.fireTableDataChanged();
 //        for (HashMap.Entry ele : averageSales.entrySet()) {
@@ -292,7 +312,7 @@ public class Main extends JFrame {
         }
         if (i > 0) {
         }//ingredient already exists
-
+        
     }//end initMenu
 
     public static void main(String args[]) {
