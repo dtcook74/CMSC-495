@@ -16,7 +16,7 @@ public class OrderManager {
 	//private Inventory myInventory = new Inventory();
 	private HashMap<String, Integer> averageSales = new HashMap();
 	private HashMap<String, List<Ingredient>> menu = new HashMap(); 
-	private HashMap<String, Integer> groceryList = new HashMap();
+	private HashMap<String, Integer> groceryList;
 	private HashMap<String, Integer> needsList = new HashMap();
  	//public OrderManager(salesAverage) {}
 	
@@ -29,6 +29,7 @@ public class OrderManager {
 	public String predictOrder(Map<Ingredient, Integer> inventory) {
 		// Go through each ingredient in grocery list
 		// then perform the actions described above ^^^
+		groceryList = new HashMap();
 		for(Ingredient i : inventory.keySet())
 		{
 			if(needsList.containsKey(i.getName()))
@@ -75,7 +76,6 @@ public class OrderManager {
 			if(menu.containsKey(dishName))
 			{	
 				List<Ingredient> ing = menu.get(dishName);
-				
 				// Then, for each ingredient in the list of ingredients
 				// get the quantity and multiply it by the number of sales
 	            // Lastly, add that amount to the grocery list
@@ -102,7 +102,6 @@ public class OrderManager {
 					// Code above was commented out since the logic was wrong(oops)
 					int need = amount * averageSales.get(dishName);
 					needsList.put(i.getName(), need);
-					
 				} // end inner for-loop
 			} // end if
 		} // end outer for-loop
