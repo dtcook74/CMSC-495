@@ -319,6 +319,7 @@ public class Main extends JFrame {
     	    if (fileOut.createNewFile()) {
     	    	// Write table to output csv file
     	    	FileWriter fw = new FileWriter("OrderOut.csv");
+    	    	fw.write("Item, Inventory, Needed, To Order\n");
     	    	for (int i = 0; i < model.getRowCount(); i++) {
         	    	for (int j = 0; j < model.getColumnCount(); j++) {
         	    		if(model.getValueAt(i, j) == null)
@@ -339,6 +340,7 @@ public class Main extends JFrame {
     	    else {
     	    	// Write table to output csv file
     	    	FileWriter fw = new FileWriter("OrderOut.csv");
+    	    	fw.write("Item, Inventory, Needed, To Order\n");
     	    	for (int i = 0; i < model.getRowCount(); i++) {
         	    	for (int j = 0; j < model.getColumnCount(); j++) {
         	    		if(model.getValueAt(i, j) == null)
