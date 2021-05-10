@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.util.logging.Level;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,7 @@ import javax.swing.table.DefaultTableModel;
 /*
 Authors: Team Delta: Zachary Pesons, Nathan Wray, Dustin Cook, David Solan
 Purpose: contains the main method and the GUI logic.
-Date: March 18, 2021
+Date: May 10, 2021
  */
 public class Main extends JFrame {
 
@@ -59,6 +60,11 @@ public class Main extends JFrame {
         exportOrderBtn.setEnabled(false);
         predictOrderBtn.setEnabled(false);
         initComponents();
+        
+        // Visual presentation
+        setSize(580,540);
+        setLocationRelativeTo(null); // Center window on screen
+        setResizable(false);
     }
 
     @SuppressWarnings("unchecked")
@@ -67,7 +73,12 @@ public class Main extends JFrame {
 // <editor-fold defaultstate="collapsed" desc="GUI and builder method">
         this.setTitle("Magic Pro-Order V9000");
 
-        tableData = inventoryTableInput.clone();
+        try {
+        	tableData = inventoryTableInput.clone();
+        }
+        catch (Exception ex1) {
+        	System.out.println("Inventory data not loaded.");
+        }
         model = new DefaultTableModel(tableData,
                 new String[]{
                     "Item", "Inventory", "Needed", "To Order"
@@ -85,9 +96,8 @@ public class Main extends JFrame {
         model.addTableModelListener(new TableModelListener() {
             public void tableChanged(TableModelEvent e) {
                 // your code goes here, whatever you want to do when something changes in the table
-                if (updating == false) {
+            	if (updating == false) {
                     doUpdate(e);
-                    //doUpdate(e);
                 }
             }
 
@@ -96,14 +106,19 @@ public class Main extends JFrame {
             // affect it while table is being updated
             public void doUpdate(TableModelEvent e) {
                 updating = true; // Lock
-                int col = e.getColumn();
-                int row = e.getFirstRow();
-                String inv = (String) model.getValueAt(row, col); // value in inventory column
-                String need = (String) model.getValueAt(row, col + 1); // value in need column
-                int newVal = Integer.parseInt(need) - Integer.parseInt(inv);
-                String nv = Integer.toString(newVal);
-                model.setValueAt(nv, row, col + 2); // set new to order value
-                updating = false; // Unlock
+                try {
+	                int col = e.getColumn();
+	                int row = e.getFirstRow();
+	                String inv = (String) model.getValueAt(row, col); // value in inventory column
+	                String need = (String) model.getValueAt(row, col + 1); // value in need column
+	                int newVal = Integer.parseInt(need) - Integer.parseInt(inv);
+	                String nv = Integer.toString(newVal);
+	                model.setValueAt(nv, row, col + 2); // set new to order value
+                }
+                catch (Exception ex2) {
+                	// Null pointer exception if column data is not filled in
+                }
+	            updating = false; // Unlock
             }
         });
 
@@ -143,6 +158,7 @@ public class Main extends JFrame {
 
         //JTable that displays the inventory and the order
         inventoryTable.setModel(model);
+        
         jScrollPane1.setViewportView(inventoryTable);
 
         GroupLayout layout = new GroupLayout(getContentPane());
@@ -164,7 +180,7 @@ public class Main extends JFrame {
                                                 .addGap(0, 0, Short.MAX_VALUE)
                                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                                         .addComponent(exportOrderBtn)
-                                                        .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 451, GroupLayout.PREFERRED_SIZE))))
+                                                        .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 550, GroupLayout.PREFERRED_SIZE))))
                                 .addGap(26, 26, 26))
         );
         layout.setVerticalGroup(
@@ -179,7 +195,7 @@ public class Main extends JFrame {
                                         .addComponent(loadSalesBtn)
                                         .addComponent(predictOrderBtn))
                                 .addGap(18, 18, 18)
-                                .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 99, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(exportOrderBtn)
                                 .addContainerGap(32, Short.MAX_VALUE))
@@ -258,6 +274,32 @@ public class Main extends JFrame {
                         averageSales.put(sale.getName(), sale.getSales());
                     }
                 }
+                
+                // Uses primarily the same code from predictOrderBtnActionPerformed() to fill in the 'Needed' column of model table
+                OrderManager om = new OrderManager();
+                om.setAverageSales(averageSales);
+                for(MenuItem m : menu)
+                {
+                	if(m == null || m.getName().equals("") || m.getIngredients()==null)
+                	{
+                		// do not add
+                	}
+                	else
+                	{
+                		om.addMenuItem(m.getName(), m.getIngredients());
+                	}
+                }
+                om.calcIngredientNeeds();
+                om.predictOrder(inventory.getInventoryMap());
+                HashMap<String, Integer> glist = om.getGroceryList();
+                for(String h : glist.keySet())
+                {
+                	// Find the ingredient that matches and fill in the needed column
+                	for (int i = 0; i < model.getRowCount(); i++) {
+                		if(model.getValueAt(i, 0).equals(h))
+                			model.setValueAt(glist.get(h), i, 2);
+                	}
+                }
             } catch (FileNotFoundException | InvalidCsvFormatException e) {
                 System.out.println(e.getMessage());
             }
@@ -269,6 +311,40 @@ public class Main extends JFrame {
         //take the tableData and print it in CSV or other readable format
         //button should either be hidden until predict order is pressed OR
         //pop up stating that there is no order predicted and to continue anyway
+    	
+    	// Output model table to output file OrderOut.csv
+    	try {
+    	    File fileOut = new File("OrderOut.csv");
+    	    if (fileOut.createNewFile()) {
+    	    	// Write table to output csv file
+    	    	FileWriter fw = new FileWriter("OrderOut.csv");
+    	    	for (int i = 0; i < model.getRowCount(); i++) {
+        	    	for (int j = 0; j < model.getColumnCount(); j++) {
+        	    		fw.write(model.getValueAt(i, j) + ",");
+        	    	}
+        	    	fw.write("\n");
+    	    	}
+    	    	fw.close();
+    	    	
+    	    	System.out.println("\nFile created: " + fileOut.getName());
+       	    }
+    	    else {
+    	    	// Write table to output csv file
+    	    	FileWriter fw = new FileWriter("OrderOut.csv");
+    	    	for (int i = 0; i < model.getRowCount(); i++) {
+        	    	for (int j = 0; j < model.getColumnCount(); j++) {
+        	    		fw.write(model.getValueAt(i, j) + ",");
+        	    	}
+        	    	fw.write("\n");
+    	    	}
+    	    	fw.close();
+    	    	
+    	    	System.out.println("\nFile overwritten.");
+    	    }
+    	    System.out.println(fileOut.getAbsolutePath());
+    	} catch (Exception ioEx1) {
+    	    System.out.println("IO Exception thrown");
+    	}
 
     }//end exportOrder
 
