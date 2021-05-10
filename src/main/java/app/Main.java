@@ -38,6 +38,7 @@ public class Main extends JFrame {
     private Object[][] tableData;
     //custom objects
     private Inventory inventory;
+    private OrderManager manager = new OrderManager();
     private List<MenuItem> menu;
     //private HashMap<MenuItem, List<Ingredient>> menu;
     private SaleItem[] sales;
@@ -60,13 +61,12 @@ public class Main extends JFrame {
         exportOrderBtn.setEnabled(false);
         predictOrderBtn.setEnabled(false);
         initComponents();
-        
         // Visual presentation
         setSize(580,540);
         setLocationRelativeTo(null); // Center window on screen
         setResizable(false);
     }
-
+    
     @SuppressWarnings("unchecked")
 
     private void initComponents() {
@@ -90,13 +90,19 @@ public class Main extends JFrame {
                 return canEdit[columnIndex];
             }
         };
-
+        
         // Listen for changes made on the inventory column
         // and update to order column accordingly
         model.addTableModelListener(new TableModelListener() {
             public void tableChanged(TableModelEvent e) {
                 // your code goes here, whatever you want to do when something changes in the table
-            	if (updating == false) {
+
+            	if(e.getColumn() != 1)
+            	{
+            		// do nothing
+            	}
+            	else if (updating == false) 
+            	{
                     doUpdate(e);
                 }
             }
@@ -105,15 +111,18 @@ public class Main extends JFrame {
             // table values. "Locks" table so tableChanged method cannot
             // affect it while table is being updated
             public void doUpdate(TableModelEvent e) {
-                updating = true; // Lock
+                updating = true; // Lock  
                 try {
-	                int col = e.getColumn();
+	                //int col = e.getColumn();
 	                int row = e.getFirstRow();
-	                String inv = (String) model.getValueAt(row, col); // value in inventory column
-	                String need = (String) model.getValueAt(row, col + 1); // value in need column
-	                int newVal = Integer.parseInt(need) - Integer.parseInt(inv);
-	                String nv = Integer.toString(newVal);
-	                model.setValueAt(nv, row, col + 2); // set new to order value
+	                if(model.getValueAt(row, 2) != null)
+	                {
+	                	String inv = (String) model.getValueAt(row, 1); // value in inventory column
+	                	int need = (int) model.getValueAt(row, 2); // value in need column
+		                int newVal = need - Integer.parseInt(inv);
+		                String nv = String.valueOf(newVal);
+		                model.setValueAt(nv, row, 3); // set new to order value
+	                }
                 }
                 catch (Exception ex2) {
                 	// Null pointer exception if column data is not filled in
@@ -220,27 +229,18 @@ public class Main extends JFrame {
         }
         
         //use the averageSales and menu to populate ingredientSales
-        //use that amount to populate inventoryTableInput[ingredient name][column 3]
-        OrderManager om = new OrderManager();
-        om.setAverageSales(averageSales);
-        for(MenuItem m : menu)
-        {
-        	if(m == null || m.getName().equals("") || m.getIngredients()==null)
-        	{
-        		// do not add
-        	}
-        	else
-        	{
-        		om.addMenuItem(m.getName(), m.getIngredients());
-        	}
-        }
-        om.calcIngredientNeeds();
-        om.predictOrder(inventory.getInventoryMap());
-        HashMap<String, Integer> glist = om.getGroceryList();
-        System.out.println("\nTo Order");
+        //use that amount to populate inventoryTableInput[ingredient name][column 3
+        manager.predictOrder(inventory.getInventoryMap());
+        HashMap<String, Integer> glist = manager.getGroceryList();
+        //System.out.println("\nTo Order");
         for(String h : glist.keySet())
         {
-        	System.out.println(h + " " + glist.get(h));
+        	//System.out.println(h + " " + glist.get(h));
+        	// Find the ingredient that matches and fill in the needed column
+        	for (int i = 0; i < model.getRowCount(); i++) {
+        		if(model.getValueAt(i, 0).equals(h))
+        			model.setValueAt(glist.get(h), i, 3);
+        	}
         }
    		
         tableData = inventoryTableInput.clone();
@@ -267,7 +267,7 @@ public class Main extends JFrame {
                 numWeeks++;
                 for (SaleItem sale : temp.getSaleItems()) {
                     if (averageSales.containsKey(sale.getName())) {
-                        System.out.println("entering " + sale.getName());
+                        //System.out.println("entering " + sale.getName());
                         averageSales.put(sale.getName(),
                                 sale.getSales() + averageSales.get(sale.getName()));
                     } else {
@@ -275,9 +275,11 @@ public class Main extends JFrame {
                     }
                 }
                 
+                // Once average sales is calculated, send a copy to
+                // the order manager.
+                manager.setAverageSales(averageSales);
+                
                 // Uses primarily the same code from predictOrderBtnActionPerformed() to fill in the 'Needed' column of model table
-                OrderManager om = new OrderManager();
-                om.setAverageSales(averageSales);
                 for(MenuItem m : menu)
                 {
                 	if(m == null || m.getName().equals("") || m.getIngredients()==null)
@@ -286,12 +288,11 @@ public class Main extends JFrame {
                 	}
                 	else
                 	{
-                		om.addMenuItem(m.getName(), m.getIngredients());
+                		manager.addMenuItem(m.getName(), m.getIngredients());
                 	}
                 }
-                om.calcIngredientNeeds();
-                om.predictOrder(inventory.getInventoryMap());
-                HashMap<String, Integer> glist = om.getGroceryList();
+                manager.calcIngredientNeeds();
+                HashMap<String, Integer> glist = manager.getNeeds();
                 for(String h : glist.keySet())
                 {
                 	// Find the ingredient that matches and fill in the needed column
@@ -320,7 +321,14 @@ public class Main extends JFrame {
     	    	FileWriter fw = new FileWriter("OrderOut.csv");
     	    	for (int i = 0; i < model.getRowCount(); i++) {
         	    	for (int j = 0; j < model.getColumnCount(); j++) {
-        	    		fw.write(model.getValueAt(i, j) + ",");
+        	    		if(model.getValueAt(i, j) == null)
+        	    		{
+        	    			fw.write("0" + ",");
+        	    		}
+        	    		else
+        	    		{
+        	    			fw.write(model.getValueAt(i, j) + ",");
+        	    		}
         	    	}
         	    	fw.write("\n");
     	    	}
@@ -333,7 +341,14 @@ public class Main extends JFrame {
     	    	FileWriter fw = new FileWriter("OrderOut.csv");
     	    	for (int i = 0; i < model.getRowCount(); i++) {
         	    	for (int j = 0; j < model.getColumnCount(); j++) {
-        	    		fw.write(model.getValueAt(i, j) + ",");
+        	    		if(model.getValueAt(i, j) == null)
+        	    		{
+        	    			fw.write("0" + ",");
+        	    		}
+        	    		else
+        	    		{
+        	    			fw.write(model.getValueAt(i, j) + ",");
+        	    		}
         	    	}
         	    	fw.write("\n");
     	    	}
@@ -367,12 +382,12 @@ public class Main extends JFrame {
         //of Ingredient objects
         menu = reader.getMenuItems("menu.csv");
 
-        for (MenuItem men : menu) {
+        /*for (MenuItem men : menu) {
             System.out.println(men.getName());
             for (Ingredient ing : men.getIngredients()) {
                 System.out.println(ing.getName());
             }
-        }
+        } */
 
         //If ingredient is not found, create it and add zero to inventory
         //sort of like this

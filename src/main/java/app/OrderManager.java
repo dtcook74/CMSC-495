@@ -17,7 +17,8 @@ public class OrderManager {
 	private HashMap<String, Integer> averageSales = new HashMap();
 	private HashMap<String, List<Ingredient>> menu = new HashMap(); 
 	private HashMap<String, Integer> groceryList = new HashMap();
-	//public OrderManager(salesAverage) {}
+	private HashMap<String, Integer> needsList = new HashMap();
+ 	//public OrderManager(salesAverage) {}
 	
 	// Predict order by subtracting inventory from need
 	// If the number is zero or more, populate the fourth column
@@ -30,17 +31,25 @@ public class OrderManager {
 		// then perform the actions described above ^^^
 		for(Ingredient i : inventory.keySet())
 		{
-			if(groceryList.containsKey(i.getName()))
+			if(needsList.containsKey(i.getName()))
 			{
 				// get what we have in inventory
 				// and what we need in grocery list
 				int have = inventory.get(i);
-				int need = groceryList.get(i.getName());
+				int need = needsList.get(i.getName());
 				// If need - have is greater than 0
 				// then we need to put it on the grocery list
 				if(need - have > 0)
 				{
-					groceryList.put(i.getName(), need - have);
+					if(groceryList.containsKey(i.getName()))
+					{
+						int previous = groceryList.get(i.getName());
+						groceryList.put(i.getName(), previous + (need-have));
+					}
+					else
+					{
+						groceryList.put(i.getName(), need - have);
+					}
 				}
 				else
 				{
@@ -80,19 +89,29 @@ public class OrderManager {
 					// Two possible cases:
 					// 1. Ingredient has already been added to groceryList
 					// 2. Ingredient has not yet been added to groceryList
-					if(groceryList.containsKey(i))
+					/*if(needsList.containsKey(i))
 					{
-						int need = groceryList.get(i) + (amount * averageSales.get(dishName));
-						groceryList.put(i.getName(), need);
+						int need = needsList.get(i) + (amount * averageSales.get(dishName));
+						needsList.put(i.getName(), need);
 					}
 					else
 					{
 						int need = amount * averageSales.get(dishName);
-						groceryList.put(i.getName(), need);
-					}
+						needsList.put(i.getName(), need);
+					} */
+					// Code above was commented out since the logic was wrong(oops)
+					int need = amount * averageSales.get(dishName);
+					needsList.put(i.getName(), need);
+					
 				} // end inner for-loop
 			} // end if
 		} // end outer for-loop
+	}
+	
+	// Return hashmap of ingredient needs calculated
+	// using averageSales
+	public HashMap<String, Integer> getNeeds() {
+		return needsList;
 	}
 	
 	// Receive a copy of averageSales from Main 
@@ -101,6 +120,7 @@ public class OrderManager {
 	}
 	
 	// return groceryList map
+	// contains what we need for "To Order" column
 	public HashMap<String, Integer> getGroceryList() {
 		return groceryList;
 	}
