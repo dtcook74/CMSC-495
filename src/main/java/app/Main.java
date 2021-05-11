@@ -25,7 +25,7 @@ public class Main extends JFrame {
 
     // Variables declaration
     private final JButton addMenuItemBtn = new JButton();
-    private final JButton editInventoryBtn = new JButton();
+//    private final JButton editInventoryBtn = new JButton();
     private final JButton exportOrderBtn = new JButton();
     private final JTable inventoryTable = new JTable();
     private final JScrollPane jScrollPane1 = new JScrollPane();
@@ -139,12 +139,12 @@ public class Main extends JFrame {
             addMenuItemBtnActionPerformed();
         });
 
-        editInventoryBtn.setText("Edit Inventory");
-        editInventoryBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                editInventoryBtnActionPerformed(evt);
-            }
-        });
+//        editInventoryBtn.setText("Edit Inventory");
+//        editInventoryBtn.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent evt) {
+//                editInventoryBtnActionPerformed(evt);
+//            }
+//        });
 
         loadSalesBtn.setText("Load Last Week Sales");
         loadSalesBtn.addActionListener(e -> {
@@ -183,8 +183,8 @@ public class Main extends JFrame {
                                                 .addComponent(predictOrderBtn))
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(addMenuItemBtn)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(editInventoryBtn))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+//                                                .addComponent(editInventoryBtn))
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(0, 0, Short.MAX_VALUE)
                                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
@@ -197,8 +197,8 @@ public class Main extends JFrame {
                         .addGroup(layout.createSequentialGroup()
                                 .addGap(31, 31, 31)
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(addMenuItemBtn)
-                                        .addComponent(editInventoryBtn))
+                                        .addComponent(addMenuItemBtn))
+//                                        .addComponent(editInventoryBtn))
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                         .addComponent(loadSalesBtn)
